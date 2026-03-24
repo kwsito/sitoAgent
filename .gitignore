@@ -1,0 +1,12 @@
+*.apk
+bin/
+downloaded_apk/
+logs/
+tasks/
+*.log
+*output*.png
+users.json
+token.json
+executed_*.json
+service_runtime.log
+capture_ready.flag
