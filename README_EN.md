@@ -11,6 +11,9 @@ Open-source features:
 - Supports sending tasks to the phone via script (ADB Intent / optional file inbox mode)
 - Includes a reusable skill description that can be invoked by other agents
 
+NOTICE BEFORE USE
+This project is intended solely for research and educational purposes. Any use for illegal information acquisition, system interference, or any unlawful activities is strictly prohibited. If developers/users fail to comply with applicable laws, regulations, policies, industry standards (including but not limited to technical specifications and security standards), and the terms of this open-source project, all legal liabilities, economic losses, and adverse consequences arising therefrom shall be borne solely and independently by the developers/users.
+
 ## Repository Layout
 
 - [main.py](./main.py): Android app (UI + task entry)
@@ -27,6 +30,18 @@ Open-source features:
 - ADB on PC: `adb devices` shows at least one `device` (download: https://developer.android.com/studio/releases/platform-tools)
 - Enable Developer options and USB debugging on the Android device
 - If you need to input text during automation, install an ADB keyboard on the phone (e.g. https://github.com/senzhk/ADBKeyBoard)
+
+Developer options & USB debugging:
+
+- Enable Developer options: typically go to Settings → About phone → Version number, then tap it rapidly about 10 times until you see “Developer mode enabled”. Menu names may vary by device; search online if you cannot find it.
+- Enable USB debugging: after Developer options are enabled, go to Settings → Developer options → USB debugging and turn it on.
+- On some devices, you may need to reboot after enabling Developer options. You can verify the connection by plugging the phone into your PC and running `adb devices`. If no device shows up, the connection failed.
+- Make sure all required permission prompts are granted
+
+Install ADB Keyboard (Android only, for text input):
+
+- Download and install the APK on the Android device
+- After installation, enable ADB Keyboard in Settings → Input method / Keyboard list (or run: `adb shell ime enable com.android.adbkeyboard/.AdbIME`)
 
 ### 2) Local Configuration
 
@@ -74,4 +89,3 @@ File inbox mode (optional):
 This project is a derivative work based on [AppAgent](https://github.com/TencentQQGYLab/AppAgent) (MIT licensed, originally created by Jiaxuan Liu).
 
 MIT License: see [LICENSE](./LICENSE).
-
