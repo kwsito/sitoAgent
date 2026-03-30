@@ -4,15 +4,14 @@
 
 开源版特性：
 
-- 任务入口仅来自应用内输入框（或侧边栏 Run Task）
-- 已移除账号体系、远程拉单/接单、私有日志上报等逻辑
 - 支持脚本投递任务到手机（ADB Intent / 可选文件 inbox 方式）
+- 提供了skill技能，可以直接交给龙虾模型调用
 
 ## 目录结构
 
 - [main.py](./main.py)：Android App（UI + 任务执行入口）
 - [scripts/](./scripts)：ADB 控制、模型调用、任务执行器
-- [config.yaml](./config.yaml)：模型与运行参数（不要提交真实 key）
+- [config.yaml](./config.yaml)：模型与运行参数
 - [安装部署说明.md](./安装部署说明.md)：Windows + WSL 构建/安装与导出说明
 
 ## 快速开始
@@ -21,8 +20,9 @@
 
 - Windows（推荐 PowerShell 7）
 - WSL（Ubuntu）+ buildozer + python-for-android
-- adb 可用：`adb devices` 能看到至少一个 `device`
+- 电脑端adb 可用：`adb devices` 能看到至少一个 `device`（下载地址：[ADB输入法](https://developer.android.com/studio/releases/platform-tools)）
 - Android 侧已开启开发者选项与 USB 调试
+- 如果需要模型输入文字，手机端需要安装ADB输入法（如：[ADB输入法](https://github.com/senzhk/ADBKeyBoard)）
 
 ### 2) 配置（本机私有）
 
