@@ -1,6 +1,8 @@
-# AppAgent Mobile（开源版）
+# SitoAgent（开源版）
 
-这是一个可在 Android 真机上运行的移动端 GUI Agent（Kivy + python-for-android），通过 ADB 采集截图/XML 并执行点击/滑动等动作。
+[English README](./README_EN.md)
+
+这是一个可在 Android 真机上运行的移动端 GUI Agent（Kivy + python-for-android）app，通过 ADB 采集截图/XML 并执行点击/滑动等动作。
 
 开源版特性：
 
@@ -66,5 +68,8 @@
 ```
 
 ## License
+
+本项目基于 [AppAgent](https://github.com/TencentQQGYLab/AppAgent) 进行二次开发，
+原项目由 Jiaxuan Liu 创建，采用 MIT 许可证。
 
 MIT License，见 [LICENSE](./LICENSE)。
