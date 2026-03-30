@@ -20,9 +20,9 @@
 
 - Windows（推荐 PowerShell 7）
 - WSL（Ubuntu）+ buildozer + python-for-android
-- 电脑端adb 可用：`adb devices` 能看到至少一个 `device`（下载地址：[ADB输入法](https://developer.android.com/studio/releases/platform-tools)）
+- 电脑端adb 可用：`adb devices` 能看到至少一个 `device`（下载地址：[ADB环境地址](https://developer.android.com/studio/releases/platform-tools)）
 - Android 侧已开启开发者选项与 USB 调试
-- 如果需要模型输入文字，手机端需要安装ADB输入法（如：[ADB输入法](https://github.com/senzhk/ADBKeyBoard)）
+- 如果需要模型输入文字，手机端需要安装ADB输入法（如：[ADB输入法地址](https://github.com/senzhk/ADBKeyBoard)）
 
 ### 2) 配置（本机私有）
 
