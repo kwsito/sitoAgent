@@ -74,6 +74,24 @@ export GIT_TERMINAL_PROMPT=0
 export GIT_HTTP_LOW_SPEED_LIMIT=1000
 export GIT_HTTP_LOW_SPEED_TIME=30
 
+cleanup_gradle_locks() {
+    local gradle_home=""
+    local cleaned=0
+
+    for gradle_home in "$HOME/.gradle" "$LINUX_BUILD_DIR/.gradle"; do
+        [ -n "$gradle_home" ] || continue
+        [ -d "$gradle_home" ] || continue
+
+        if find "$gradle_home" -type f \( -name "*.lck" -o -name "*.lock" \) -print -delete 2>/dev/null | grep -q .; then
+            cleaned=1
+        fi
+    done
+
+    if [ "$cleaned" -eq 1 ]; then
+        echo "Cleaned stale Gradle lock files."
+    fi
+}
+
 GCC_MAJOR=""
 if command -v gcc >/dev/null 2>&1; then
     GCC_MAJOR="$(gcc -dumpversion 2>/dev/null | cut -d. -f1 || true)"
@@ -224,6 +242,65 @@ ensure_python3_cached() {
     return 1
 }
 
+ensure_gradle_wrapper_cached() {
+    local gradle_version="8.0.2"
+    local gradle_dist="gradle-${gradle_version}-all"
+    local gradle_zip="${gradle_dist}.zip"
+    local gradle_url="https://services.gradle.org/distributions/${gradle_zip}"
+    local gradle_hash_dir="14bt34ptcsg1ikmfn78tdh1keu"
+    local primary_dir="$HOME/.gradle/wrapper/dists/${gradle_dist}/${gradle_hash_dir}"
+    local mirror_dir="$LINUX_BUILD_DIR/.gradle/wrapper/dists/${gradle_dist}/${gradle_hash_dir}"
+    local primary_zip="$primary_dir/$gradle_zip"
+    local mirror_zip="$mirror_dir/$gradle_zip"
+
+    is_valid_gradle_zip() {
+        local zip_path="$1"
+        [ -f "$zip_path" ] || return 1
+        python3 - "$zip_path" <<'PY'
+import sys
+import zipfile
+
+path = sys.argv[1]
+try:
+    with zipfile.ZipFile(path) as zf:
+        bad = zf.testzip()
+        sys.exit(0 if bad is None else 1)
+except Exception:
+    sys.exit(1)
+PY
+    }
+
+    mkdir -p "$primary_dir" "$mirror_dir"
+
+    if is_valid_gradle_zip "$primary_zip"; then
+        if ! is_valid_gradle_zip "$mirror_zip"; then
+            cp -f "$primary_zip" "$mirror_zip" 2>/dev/null || true
+        fi
+        return 0
+    fi
+
+    rm -f "$primary_zip" "$primary_zip.part"
+    echo "Prefetching Gradle wrapper distribution: $gradle_url"
+    if command -v wget >/dev/null 2>&1; then
+        wget --tries=5 --timeout=30 --continue -O "$primary_zip.part" "$gradle_url" || true
+    elif command -v curl >/dev/null 2>&1; then
+        curl -L --retry 5 --retry-delay 3 --connect-timeout 30 -o "$primary_zip.part" "$gradle_url" || true
+    else
+        echo "Warning: wget/curl not found, Gradle wrapper will download on demand."
+        return 0
+    fi
+
+    if is_valid_gradle_zip "$primary_zip.part"; then
+        mv -f "$primary_zip.part" "$primary_zip"
+        cp -f "$primary_zip" "$mirror_zip" 2>/dev/null || true
+        return 0
+    fi
+
+    rm -f "$primary_zip.part" "$primary_zip" "$mirror_zip"
+    echo "Warning: Gradle wrapper prefetch failed, falling back to gradlew download."
+    return 0
+}
+
 # 3. 进入 Linux 目录执行打包
 echo "[2/4] 开始 Buildozer 打包..."
 cd "$LINUX_BUILD_DIR"
@@ -232,6 +309,8 @@ mkdir -p "$BIN_DIR"
 rm -f "$BIN_DIR"/*.apk 2>/dev/null || true
 echo "Using buildozer.spec android.archs: $(grep -E '^android\.archs\s*=' -m1 buildozer.spec || true)"
 echo "Using CC=${CC:-gcc} CFLAGS=${CFLAGS:-} P4A_NUM_JOBS=${P4A_NUM_JOBS:-} MAKEFLAGS=${MAKEFLAGS:-}"
+cleanup_gradle_locks
+ensure_gradle_wrapper_cached || true
 ensure_pillow_cached || true
 ensure_python3_cached || true
 # rm -rf "$LINUX_BUILD_DIR/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a" 2>/dev/null || true
@@ -268,7 +347,7 @@ while [ $attempt -le $max_attempts ]; do
     success_detected=0
     (
         set -o pipefail
-        if command -v stdbuf >/dev/null 2>&1; then
+        if command -v stdbuf >/dev/null 2>&1 && [ -t 1 ] && [ -t 2 ]; then
             # Pipe 'yes' to handle any interactive prompts (licenses, etc)
             stdbuf -oL -eL buildozer android debug 2>&1 | tee "$build_log"
         else
@@ -328,6 +407,7 @@ while [ $attempt -le $max_attempts ]; do
         if [ $attempt -eq 1 ]; then
             echo "First attempt failed. Cleaning up locks and partial builds..."
             find "$LINUX_BUILD_DIR/.buildozer" -name "*.lock" -delete 2>/dev/null || true
+            cleanup_gradle_locks
             rm -rf "$LINUX_BUILD_DIR/.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/dists" 2>/dev/null || true
         fi
         sleep "$sleep_sec"

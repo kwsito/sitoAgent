@@ -133,13 +133,13 @@ if ($exitCode -ne 0) {
   $outText = ($installOut | Out-String)
   if ($outText -match "INSTALL_FAILED_ABORTED: User rejected permissions") {
     Write-Host ""
-    Write-Host "[提示] 手机端拒绝了通过 USB/ADB 安装的授权，所以安装被系统中止。"
-    Write-Host "请在手机上执行一次授权后再重试："
-    Write-Host "  1) 打开 开发者选项 -> 启用“USB 调试”"
-    Write-Host "  2) 打开 开发者选项 -> 启用“通过 USB 安装/Install via USB”(不同机型名字略有差异)"
-    Write-Host "  3) 重新插拔数据线，手机弹窗选择“允许/始终允许”"
+    Write-Host "[Hint] The device rejected USB/ADB install permissions, so installation was aborted."
+    Write-Host "Please allow the required permissions on the phone and try again:"
+    Write-Host "  1) Open Developer options -> enable USB debugging"
+    Write-Host "  2) Open Developer options -> enable Install via USB (name may vary by device)"
+    Write-Host "  3) Replug the USB cable and choose Allow / Always allow on the phone"
     Write-Host ""
-    Write-Host "然后重新运行："
+    Write-Host "Then run again:"
     Write-Host ("  .\one_click_build_install.ps1 -Serial {0} -SkipClean" -f $Serial)
     throw "Install aborted by device permission prompt"
   }
