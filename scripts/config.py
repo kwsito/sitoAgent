@@ -27,18 +27,23 @@ def _yaml_safe_load_file(path):
         return {}
 
 
+def _is_missing_key(api_key):
+    value = (api_key or "").strip()
+    return (not value) or (value.lower() == "your_api_key_here") or (value == "sk-")
+
+
 def _is_placeholder_cfg(cfg):
     try:
         model = (cfg.get("MODEL") or "").strip()
         if model == "OpenAI":
             api_key = (cfg.get("OPENAI_API_KEY") or "").strip()
-            return (not api_key) or (api_key.lower() == "your_api_key_here")
+            return _is_missing_key(api_key)
         if model == "Qwen":
             api_key = (cfg.get("DASHSCOPE_API_KEY") or "").strip()
-            return not api_key
+            return _is_missing_key(api_key)
         if model == "Doubao":
             api_key = (cfg.get("ARK_API_KEY") or "").strip()
-            return not api_key
+            return _is_missing_key(api_key)
     except Exception:
         return True
     return False
@@ -49,41 +54,37 @@ def _has_real_key_cfg(cfg):
         model = (cfg.get("MODEL") or "").strip()
         if model == "OpenAI":
             api_key = (cfg.get("OPENAI_API_KEY") or "").strip()
-            return bool(api_key) and (api_key.lower() != "your_api_key_here")
+            return not _is_missing_key(api_key)
         if model == "Qwen":
             api_key = (cfg.get("DASHSCOPE_API_KEY") or "").strip()
-            return bool(api_key)
+            return not _is_missing_key(api_key)
         if model == "Doubao":
             api_key = (cfg.get("ARK_API_KEY") or "").strip()
-            return bool(api_key)
+            return not _is_missing_key(api_key)
     except Exception:
         return False
     return False
 
 
-def _maybe_refresh_seed_config(src_path, dst_paths):
+def _sync_seed_config(src_path, dst_paths):
     if not src_path or not os.path.exists(src_path):
         return
-    src_cfg = _yaml_safe_load_file(src_path)
-    if not _has_real_key_cfg(src_cfg):
+
+    try:
+        with open(src_path, "rb") as rf:
+            content = rf.read()
+    except Exception:
         return
 
     for dst_path in dst_paths:
         if not dst_path:
             continue
+
         try:
-            dst_exists = os.path.exists(dst_path)
+            if os.path.abspath(dst_path) == os.path.abspath(src_path):
+                continue
         except Exception:
-            dst_exists = False
-
-        should_write = not dst_exists
-        if dst_exists:
-            dst_cfg = _yaml_safe_load_file(dst_path)
-            if _is_placeholder_cfg(dst_cfg) and _has_real_key_cfg(src_cfg):
-                should_write = True
-
-        if not should_write:
-            continue
+            pass
 
         try:
             os.makedirs(os.path.dirname(dst_path), exist_ok=True)
@@ -91,8 +92,14 @@ def _maybe_refresh_seed_config(src_path, dst_paths):
             pass
 
         try:
-            with open(src_path, "rb") as rf:
-                content = rf.read()
+            if os.path.exists(dst_path):
+                with open(dst_path, "rb") as rf:
+                    if rf.read() == content:
+                        continue
+        except Exception:
+            pass
+
+        try:
             with open(dst_path, "wb") as wf:
                 wf.write(content)
         except Exception:
@@ -107,40 +114,6 @@ def load_config():
         config_path = os.path.join(base_path, 'config.yaml')
     else:
         app_agent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-        candidate_paths = []
-        env_path = (os.environ.get("APPAGENT_CONFIG_PATH") or "").strip()
-        if env_path:
-            candidate_paths.append(env_path)
-
-        android_private = (os.environ.get("ANDROID_PRIVATE") or "").strip()
-        android_external = _get_android_external_files_dir()
-        if android_external:
-            candidate_paths.append(os.path.join(android_external, "config.yml"))
-            candidate_paths.append(os.path.join(android_external, "config.yaml"))
-        candidate_paths.append(os.path.join("/storage/emulated/0", "AppAgent", "config.yml"))
-        candidate_paths.append(os.path.join("/storage/emulated/0", "AppAgent", "config.yaml"))
-        candidate_paths.append(os.path.join("/sdcard", "AppAgent", "config.yml"))
-        candidate_paths.append(os.path.join("/sdcard", "AppAgent", "config.yaml"))
-        if android_private:
-            candidate_paths.append(os.path.join(android_private, "config.yml"))
-            candidate_paths.append(os.path.join(android_private, "config.yaml"))
-
-        candidate_paths.append(os.path.join(app_agent_dir, "config.yml"))
-        candidate_paths.append(os.path.join(app_agent_dir, "config.yaml"))
-
-        config_path = None
-        for p in candidate_paths:
-            try:
-                if p and os.path.exists(p):
-                    config_path = p
-                    break
-            except Exception:
-                continue
-
-        if config_path is None:
-            config_path = os.path.join(app_agent_dir, "config.yaml")
-
         seed_candidates = [
             os.path.join(app_agent_dir, "config.yml"),
             os.path.join(app_agent_dir, "config.yaml"),
@@ -154,25 +127,73 @@ def load_config():
             except Exception:
                 continue
 
-        if android_private:
+        env_path = (os.environ.get("APPAGENT_CONFIG_PATH") or "").strip()
+        android_private = (os.environ.get("ANDROID_PRIVATE") or "").strip()
+        android_external = _get_android_external_files_dir()
+        config_path = None
+        if env_path:
             try:
-                dst_yaml = os.path.join(android_private, "config.yaml")
-                dst_yml = os.path.join(android_private, "config.yml")
-                _maybe_refresh_seed_config(seed_config_path or config_path, [dst_yaml, dst_yml])
+                if os.path.exists(env_path):
+                    config_path = env_path
             except Exception:
-                pass
+                config_path = None
 
+        if config_path is None and seed_config_path:
+            config_path = seed_config_path
+
+        sync_targets = [
+            os.path.join("/storage/emulated/0", "AppAgent", "config.yml"),
+            os.path.join("/storage/emulated/0", "AppAgent", "config.yaml"),
+            os.path.join("/sdcard", "AppAgent", "config.yml"),
+            os.path.join("/sdcard", "AppAgent", "config.yaml"),
+        ]
+        if android_private:
+            sync_targets.extend([
+                os.path.join(android_private, "config.yml"),
+                os.path.join(android_private, "config.yaml"),
+            ])
         if android_external:
-            try:
-                dst_yaml = os.path.join(android_external, "config.yaml")
-                dst_yml = os.path.join(android_external, "config.yml")
-                _maybe_refresh_seed_config(seed_config_path or config_path, [dst_yaml, dst_yml])
-            except Exception:
-                pass
+            sync_targets.extend([
+                os.path.join(android_external, "config.yml"),
+                os.path.join(android_external, "config.yaml"),
+            ])
+
+        if seed_config_path:
+            _sync_seed_config(seed_config_path, sync_targets)
+
+        if config_path is None:
+            candidate_paths = []
+            if android_external:
+                candidate_paths.extend([
+                    os.path.join(android_external, "config.yml"),
+                    os.path.join(android_external, "config.yaml"),
+                ])
+            candidate_paths.extend([
+                os.path.join("/storage/emulated/0", "AppAgent", "config.yml"),
+                os.path.join("/storage/emulated/0", "AppAgent", "config.yaml"),
+                os.path.join("/sdcard", "AppAgent", "config.yml"),
+                os.path.join("/sdcard", "AppAgent", "config.yaml"),
+            ])
+            if android_private:
+                candidate_paths.extend([
+                    os.path.join(android_private, "config.yml"),
+                    os.path.join(android_private, "config.yaml"),
+                ])
+
+            for p in candidate_paths:
+                try:
+                    if p and os.path.exists(p):
+                        config_path = p
+                        break
+                except Exception:
+                    continue
+
+        if config_path is None:
+            config_path = os.path.join(app_agent_dir, "config.yaml")
     
     configs = dict(os.environ)
-    with open(config_path, "r") as file:
-        yaml_data = yaml.safe_load(file)
+    with open(config_path, "r", encoding="utf-8") as file:
+        yaml_data = yaml.safe_load(file) or {}
     configs.update(yaml_data)
     configs["_CONFIG_PATH"] = config_path
     return configs

@@ -8,7 +8,7 @@ MODEL: "Doubao"
 # REQUEST_INTERVAL: 10  # Time in seconds between consecutive GPT-4V requests
 
 OPENAI_API_BASE: "https://open.bigmodel.cn/api/paas/v4/chat/completions"
-OPENAI_API_KEY: "sk-"  # Fill locally or set via env; do not commit real keys
+OPENAI_API_KEY: ""  # Fill locally or set via env; do not commit real keys
 OPENAI_API_MODEL: "glm-4.6v"  # The only OpenAI model by now that accepts visual input
 MAX_TOKENS: 10000  # The max token limit for the response completion
 TEMPERATURE: 0.0  # The temperature of the model: the lower the value, the more consistent the output of the model
