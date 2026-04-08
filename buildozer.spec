@@ -1,7 +1,7 @@
 [app]
 
 # (str) Title of your application
-title = Order Query
+title = SitoAgent
 
 # (str) Package name
 package.name = orderquery
@@ -30,10 +30,11 @@ android.numeric_version = 2026022601
 requirements = python3==3.11.5,kivy,pillow,requests,urllib3,charset_normalizer,idna,certifi,pyyaml,pyjnius,setuptools,wheel,adb-shell,cryptography,pyasn1,rsa,libffi
 
 # (str) Presplash of the application
-#presplash.filename = %(source.dir)s/data/presplash.png
+presplash.filename = %(source.dir)s/app_presplash.png
+android.presplash_color = #FFFFFF
 
 # (str) Icon of the application
-#icon.filename = %(source.dir)s/data/icon.png
+icon.filename = %(source.dir)s/app_icon.png
 
 # (str) Supported orientation (one of 'landscape', 'portrait' or 'sensor')
 orientation = portrait
@@ -190,7 +191,7 @@ android.allow_backup = True
 android.package_format = apk
 
 # (str) The filename of the APK to be built
-android.filename = orderquery-{version.suffix}
+android.filename = sitoagent-{version.suffix}
 
 # (str) The name of the signing key (None for debug)
 android.signing_keys =
@@ -215,7 +216,7 @@ android.sign_algorithm = SHA256withRSA
 #android.launcher_activity =
 
 # (str) Android launcher name
-android.launcher_name = OrderQuery
+android.launcher_name = SitoAgent
 
 # (str) Android launcher icon
 #android.launcher_icon =

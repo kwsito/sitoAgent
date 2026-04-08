@@ -28,6 +28,9 @@ function Select-LatestApk {
     param([Parameter(Mandatory = $true)][string]$RepoRoot)
 
     $candidates = @(
+        "sitoagent-*-arm64-v8a-debug.apk",
+        "sitoagent-*-debug.apk",
+        "sitoagent-*-arm64-v8a_armeabi-v7a-debug.apk",
         "orderquery-*-arm64-v8a-debug.apk",
         "orderquery-*-debug.apk",
         "orderquery-*-arm64-v8a_armeabi-v7a-debug.apk"
@@ -100,7 +103,7 @@ try {
     # List generated APKs
     Write-Host ""
     Write-Host "Generated APK files:" -ForegroundColor Cyan
-    Get-ChildItem -Filter "orderquery-*.apk" | Sort-Object LastWriteTime -Descending | Select-Object -First 5 | Format-Table Name, Length, LastWriteTime
+    Get-ChildItem -Filter "sitoagent-*.apk" | Sort-Object LastWriteTime -Descending | Select-Object -First 5 | Format-Table Name, Length, LastWriteTime
 
     $selected = Select-LatestApk -RepoRoot $repoRoot
     if ($selected) {

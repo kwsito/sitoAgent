@@ -44,8 +44,7 @@
 
 编辑 [config.yaml](./config.yaml)：
 
-- `OPENAI_API_KEY` / `DASHSCOPE_API_KEY` / `ARK_API_KEY`：只在本机填写或通过环境变量注入，不要提交到仓库
-- `ANDROID_SCREENSHOT_DIR` / `ANDROID_XML_DIR`：设备侧中间产物目录
+- `ARK_API_KEY`：只需要选择对应的模型，并填写对应模型的API Key就可以使用了。
 
 ### 3) 构建并安装
 

@@ -32,13 +32,13 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/icon"
-        android:label="Order Query"
+        android:label="SitoAgent"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         
         <activity
             android:name=".MainActivity"
-            android:label="Order Query"
+            android:label="SitoAgent"
             android:screenOrientation="portrait"
             android:exported="true">
             <intent-filter>

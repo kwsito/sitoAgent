@@ -428,10 +428,15 @@ fi
 # 4. 将 APK 复制回 Windows 目录
 echo "[3/4] 构建完成，复制 APK..."
 if [ -d "$BIN_DIR" ]; then
-    rm -f "$WIN_PROJECT_DIR"/orderquery-*.apk 2>/dev/null || true
-    cp "$BIN_DIR"/*.apk "$WIN_PROJECT_DIR/"
+    rm -f "$WIN_PROJECT_DIR"/sitoagent-*.apk "$WIN_PROJECT_DIR"/orderquery-*.apk 2>/dev/null || true
+    for apk_path in "$BIN_DIR"/*.apk; do
+        [ -f "$apk_path" ] || continue
+        apk_name="$(basename "$apk_path")"
+        target_name="${apk_name/orderquery-/sitoagent-}"
+        cp "$apk_path" "$WIN_PROJECT_DIR/$target_name"
+    done
     echo "✅ APK 已成功复制到: $WIN_PROJECT_DIR"
-    ls -lh "$WIN_PROJECT_DIR"/*.apk
+    ls -lh "$WIN_PROJECT_DIR"/sitoagent-*.apk 2>/dev/null || ls -lh "$WIN_PROJECT_DIR"/*.apk
 else
     echo "❌ 未找到生成的 APK 文件！"
     exit 1
