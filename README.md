@@ -4,6 +4,8 @@
 
 这是一个可在 Android 真机上运行的移动端 GUI Agent（Kivy + python-for-android）app，通过 ADB 采集截图/XML 并执行点击/滑动等动作。
 
+![demo](./assets/demo.png)
+
 开源版特性：
 
 - 支持脚本投递任务到手机（ADB Intent / 可选文件 inbox 方式）
