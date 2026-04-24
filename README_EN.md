@@ -6,6 +6,8 @@
 
 SitoAgent is a mobile GUI agent that runs on real Android devices (Kivy + python-for-android). It uses ADB to capture screenshots/XML and executes actions such as tap and swipe.
 
+![demo](./assets/demo.png)
+
 Open-source features:
 
 - Supports sending tasks to the phone via script (ADB Intent / optional file inbox mode)
